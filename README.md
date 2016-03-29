@@ -1,4 +1,5 @@
-# Introducão
+Introducão
+----------
 
 XML é um padrão internacional da W3C para intercâmbio de dados, amplamente utilizado e conhecido. Tal formato permite a troca de dados entre sistemas heterogêneos, garantindo a interoperabilidade entre os mesmos. No entanto, em aplicações interativas para o Sistema Brasileiro de TV Digital, desenvolvidas em NCL e Lua, tem-se uma alternativa bem mais simples que o uso de arquivos XML para a representação, armazenamento e troca de dados: [os arquivos de dados em formato Lua](http://manoelcampos.com/2010/06/08/aplicacao-de-tv-digital-usando-arquivos-de-dados-em-lua/), como já mostrei em [neste post](http://manoelcampos.com/2010/06/08/aplicacao-de-tv-digital-usando-arquivos-de-dados-em-lua/).
 
@@ -7,7 +8,8 @@ O uso de tais arquivos traz vários benefícios como: tamanho menor (menos bytes
 Por demandar uma capacidade mínima de processamento, o uso de arquivos de dados em formato Lua é ideal para ambientes de recursos de hardware restritos como os equipamentos de recepção de TV Digital, além de simplificar o código da aplicação para a manipulação de tais dados.
 
 
-# O problema
+O problema
+----------
 
 O uso de arquivos XML em aplicações NCL/Lua para a TVD (enviadas via broadcast) é perfeitamente possível desde que tenha-se um parser escrito inteiramente em Lua, como o [LuaXML](https://github.com/manoelcampos/LuaXML) (veja o [Leitor de RSS em NCLua](https://github.com/manoelcampos/NCLuaRSS-Reader)). Tal parser converte um arquivo XML para uma tabela Lua, armazenando a mesma em RAM. Desta forma, a manipulação dos dados fica mais fácil. No link anterior existe uma versão do parser, adaptada por mim, que funciona com Lua 5 (a versão utilizada no subsistema Ginga-NCL do middleware Ginga).
 
@@ -18,7 +20,8 @@ Apesar de ser possível a atualização do middleware, sabemos que nem todos os 
 Desta forma, usar arquivos XML localmente não garante que a aplicação executará em qualquer implementação de Ginga.
 
 
-# A solução: Xml2Lua
+A solução: Xml2Lua
+------------------
 
 
 Para resolver tal problema, estou disponibilizando uma aplicação console em Java para converter um arquivo XML para o formato Lua. A aplicação utiliza o parser DOM (que se não estou errado é padrão no JDK e JRE) para percorrer os elementos do arquivo XML e assim poder gerar um arquivo Lua com os dados contidos no primeiro.
@@ -27,12 +30,13 @@ Para tal conversão, poderia ser utilizada qualquer linguagem de programação, 
 
 A implementação realizada está disponível no final do artigo, juntamente com toda a documentação e código fonte.  Ela possui uma ferramenta de linha de comando (para ser usada antes de enviar a aplicação NCL/Lua via broadcast) para fazer a conversão do XML para Lua. Além disto, existe também uma classe Java que pode ser usada em qualquer outra aplicação (Desktop ou Web), permitindo a integração de tal implementação em sistemas já existentes, para, por exemplo, automatizar a conversão dos arquivos XML para Lua, para assim poderem ser enviados pelo carrossel para transmissão em broadcast.
 
-# Documentação
+Documentação
+------------
 
 A documentação da API está [disponível online aqui](http://manoelcampos.github.io/Xml2Lua/apidocs).
 
-# Usando a ferramenta
-
+Usando a ferramenta
+-------------------
 
 Para usar a ferramenta de linha de comando, basta executar em um terminal:
 
@@ -42,8 +46,8 @@ java -jar xml2lua.jar NomeArquivoXML
 
 Note que deve-se informar o nome de um arquivo XML. A aplicação gerará um arquivo Lua de mesmo nome, dentro do diretório atual.
 
-# Estudo de caso
-
+Estudo de caso
+--------------
 
 Para exemplificar o uso da ferramenta, vamos imaginar que temos uma aplicação NCL/Lua de uma loja virtual, que precisa exibir uma lista de produtos na tela. As informações de tais produtos estão em um arquivo XML que será convertido para um arquivo Lua.
 
@@ -147,7 +151,7 @@ return  {
 A partir de um for em tal tabela, pegando-se o valor do campo id, pode-se acessar a tabela produtos diretamente (sem precisar fazer um for nela) na posição do id da tabela destaques. Assim, serão apenas 3 iterações.
 
 
-# Código da aplicação Lua
+## Código da aplicação Lua
 
 
 Após terem sido convertidos os arquivos produtos.xml e destaques.xml para Lua, podemos ter uma aplicação Lua  para carregar tais arquivos Lua e exibir os dados, como pode ser visto no trecho de código a seguir. A aplicação não possui interface gráfica pois isto está fora do escopo do artigo. Ela apenas exibe os dados no terminal. Tal código está disponível no arquivo app.lua, no pacote para download.
@@ -172,8 +176,8 @@ lua app.lua
 ```
 
 
-# Conclusão
-
+Conclusão
+---------
 
 Como as aplicações de TVD (por exemplo, as de comércio eletrônico) podem ser apenas uma nova interface gráfica para sistemas já existentes que usam XML, WebServices e outras tecnologias como a base da arquitetura destes, implementar a geração de arquivos de dados Lua em tais arquiteturas pode ser algo trabalhoso.
 
