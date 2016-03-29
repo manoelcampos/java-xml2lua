@@ -44,7 +44,7 @@ Note que deve-se informar o nome de um arquivo XML. A aplicação gerará um arq
 
 Para exemplificar o uso da ferramenta, vamos imaginar que temos uma aplicação NCL/Lua de uma loja virtual, que precisa exibir uma lista de produtos na tela. As informações de tais produtos estão em um arquivo XML que será convertido para um arquivo Lua.
 
-Para isto, usaremos um arquivo de nome produtos.xml, com o conteúdo a seguir (tal arquivo está disponível no pacote para download).
+Para isto, usaremos um arquivo de nome produtos.xml, com o conteúdo a seguir. Todos os arquivos XML e o código do exemplo apresentado aqui está disponível na pasta [exemplo](exemplo).
 
 ```xml
 <produtos>
