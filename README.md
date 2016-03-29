@@ -1,4 +1,4 @@
-Introducão[![Build Status](https://travis-ci.org/manoelcampos/Xml2Lua.png?branch=master)](https://travis-ci.org/manoelcampos/Xml2Lua)
+Introducão [![Build Status](https://travis-ci.org/manoelcampos/Xml2Lua.png?branch=master)](https://travis-ci.org/manoelcampos/Xml2Lua)
 ----------
 
 XML é um padrão internacional da W3C para intercâmbio de dados, amplamente utilizado e conhecido. Tal formato permite a troca de dados entre sistemas heterogêneos, garantindo a interoperabilidade entre os mesmos. No entanto, em aplicações interativas para o Sistema Brasileiro de TV Digital, desenvolvidas em NCL e Lua, tem-se uma alternativa bem mais simples que o uso de arquivos XML para a representação, armazenamento e troca de dados: [os arquivos de dados em formato Lua](http://manoelcampos.com/2010/06/08/aplicacao-de-tv-digital-usando-arquivos-de-dados-em-lua/), como já mostrei em [neste post](http://manoelcampos.com/2010/06/08/aplicacao-de-tv-digital-usando-arquivos-de-dados-em-lua/).
