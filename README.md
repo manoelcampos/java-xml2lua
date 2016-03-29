@@ -31,7 +31,7 @@ A implementação realizada está disponível no final do artigo, juntamente com
 
 A documentação da API está [disponível online aqui](http://manoelcampos.github.io/Xml2Lua/apidocs).
 
-## Usando a ferramenta
+# Usando a ferramenta
 
 
 Para usar a ferramenta de linha de comando, basta executar em um terminal:
@@ -42,7 +42,7 @@ java -jar xml2lua.jar NomeArquivoXML
 
 Note que deve-se informar o nome de um arquivo XML. A aplicação gerará um arquivo Lua de mesmo nome, dentro do diretório atual.
 
-## Estudo de caso
+# Estudo de caso
 
 
 Para exemplificar o uso da ferramenta, vamos imaginar que temos uma aplicação NCL/Lua de uma loja virtual, que precisa exibir uma lista de produtos na tela. As informações de tais produtos estão em um arquivo XML que será convertido para um arquivo Lua.
@@ -147,7 +147,7 @@ return  {
 A partir de um for em tal tabela, pegando-se o valor do campo id, pode-se acessar a tabela produtos diretamente (sem precisar fazer um for nela) na posição do id da tabela destaques. Assim, serão apenas 3 iterações.
 
 
-## Código da aplicação Lua
+# Código da aplicação Lua
 
 
 Após terem sido convertidos os arquivos produtos.xml e destaques.xml para Lua, podemos ter uma aplicação Lua  para carregar tais arquivos Lua e exibir os dados, como pode ser visto no trecho de código a seguir. A aplicação não possui interface gráfica pois isto está fora do escopo do artigo. Ela apenas exibe os dados no terminal. Tal código está disponível no arquivo app.lua, no pacote para download.
@@ -172,7 +172,7 @@ lua app.lua
 ```
 
 
-## Conclusão
+# Conclusão
 
 
 Como as aplicações de TVD (por exemplo, as de comércio eletrônico) podem ser apenas uma nova interface gráfica para sistemas já existentes que usam XML, WebServices e outras tecnologias como a base da arquitetura destes, implementar a geração de arquivos de dados Lua em tais arquiteturas pode ser algo trabalhoso.
