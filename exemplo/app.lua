@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 ---Aplicação para carregar arquivos lua convertidos a partir de um XML e exibir os dados no terminal.
 --@author Manoel Campos da Silva Filho - http://manoelcampos.com
 local produtos = dofile("produtos.lua")
