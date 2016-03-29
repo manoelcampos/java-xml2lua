@@ -31,21 +31,13 @@ A implementação realizada está disponível no final do artigo, juntamente com
 ## Usando a ferramenta
 
 
-Para usar a ferramenta de linha de comando há duas opções. A primeira é entrar no diretório bin em um terminal e executar:
-
-```bash
-java com.manoelcampos.Xml2LuaApp NomeArquivoXML
-```
-
-
-Note que deve-se informar o nome de um arquivo XML. A aplicação gerará um arquivo Lua de mesmo nome, dentro do diretório atual (bin).
-
-Outra forma de uso é por meio do pacote xml2lua.jar (que contém todos os arquivos dos subdiretório de bin, facilitando a distribuição da aplicação). Para executá-lo, no terminal digite:
+Para usar a ferramenta de linha de comando, basta executar em um terminal:
 
 ```bash
 java -jar xml2lua.jar NomeArquivoXML
 ```
 
+Note que deve-se informar o nome de um arquivo XML. A aplicação gerará um arquivo Lua de mesmo nome, dentro do diretório atual.
 
 ## Estudo de caso
 
