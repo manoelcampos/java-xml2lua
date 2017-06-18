@@ -37,7 +37,8 @@ public class Xml2LuaApp {
             System.exit(-1);
         }
 
-        final String xmlFileName = args[0];
-        new Xml2Lua(xmlFileName, true, false);
+        final Xml2Lua parser = new Xml2Lua(args[0]);
+        parser.convert();
+        System.out.printf("\nLua file %s generated successfully from the %s.\n\n", parser.getLuaFileName(), parser.getXmlFilePath());
     }
 }

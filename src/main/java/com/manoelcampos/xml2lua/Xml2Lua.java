@@ -19,22 +19,17 @@
  */
 package com.manoelcampos.xml2lua;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * Converts XML files to <a href="http://lua.org">Lua</a> files.
@@ -42,22 +37,29 @@ import org.xml.sax.SAXParseException;
  * @author Manoel Campos da Silva Filho
  */
 public class Xml2Lua {
+    /** @see #getXmlFilePath() */
+    private final String xmlFilePath;
+    /** @see #isPrintLuaCode()  */
+    private boolean printLuaCode;
+    /** @see #isUseFirstXmlTagAsLuaTableName()  */
+    private boolean useFirstXmlTagAsLuaTableName;
 
     /**
-     * Instantiates the class to parse an XML file, generating a Lua file
-     * with the same name.
+     * Instantiates the parser to convert a XML file to a Lua file.
      *
-     * @param xmlFilePath Path to the XML file to be parsed
-     * @param printLuaCode if the generated Lua code must be printed or not
-     * @param useFirstXmlTagAsLuaTableName if true, indicates the name of the first
-     *                                     tag into the XML file will be used as the name of the
-     *                                     Lua table to be generated.
-     *                                     If false, the name of this first tag will be ignored
-     *                                     and a lua "return" command will be used instead.
-     *                                     This way, the Lua developer who will use the generated Lua file
-     *                                     can define the name he/she wants to use for the generated Lua table.
+     * @param xmlFilePath path to the XML file to be parsed
      */
-    public Xml2Lua(final String xmlFilePath, final boolean printLuaCode, final boolean useFirstXmlTagAsLuaTableName) {
+    public Xml2Lua(final String xmlFilePath) {
+        this.xmlFilePath = xmlFilePath;
+        this.printLuaCode = true;
+        this.useFirstXmlTagAsLuaTableName = false;
+    }
+
+    /**
+     * Convert the XML file to Lua.
+     * @return true if the conversion was successful, false otherwise.
+     */
+    public boolean convert() {
         try {
             final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
             final DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
@@ -65,7 +67,7 @@ public class Xml2Lua {
 
             //Normalizes text representation
             doc.getDocumentElement().normalize();
-            final String luaTableName = getLuaTableName(useFirstXmlTagAsLuaTableName, doc);
+            final String luaTableName = getLuaTableName(doc);
             final StringBuilder luaCode = new StringBuilder(luaTableName + " {\n");
 
             //Gets the attributes of the XML root node.
@@ -76,8 +78,7 @@ public class Xml2Lua {
             luaCode.append(convertXmlChildNodesToLua(nodes, ""));
             luaCode.append("}");
 
-            final String luaFileName = xmlFilePath.replaceFirst("\\.xml", ".lua");
-            final FileWriter file = new FileWriter(luaFileName);
+            final FileWriter file = new FileWriter(getLuaFileName());
             try (BufferedWriter out = new BufferedWriter(file)) {
                 out.write(luaCode.toString());
             }
@@ -85,22 +86,11 @@ public class Xml2Lua {
             if (printLuaCode) {
                 System.out.println(luaCode.toString());
             }
-            System.out.printf("\nLua file %s generated successfully from the %s.\n\n", luaFileName, xmlFilePath);
-        } catch (SAXParseException err) {
-            System.out.println("** Parsing error" + ", line "
-                    + err.getLineNumber() + ", uri " + err.getSystemId());
-            System.out.println(" " + err.getMessage());
+
+            return true;
         } catch (SAXException | ParserConfigurationException | IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String getLuaTableName(boolean useFirstXmlNodeAsLuaTableName, Document doc) {
-        if (useFirstXmlNodeAsLuaTableName) {
-            return doc.getDocumentElement().getNodeName() + " = ";
-        }
-
-        return "return ";
     }
 
     /**
@@ -110,12 +100,10 @@ public class Xml2Lua {
      * @param space a string containing the amount of spaces to be used to indent the generated Lua code
      * @return a StringBuilder containing the Lua code generated for the child elements of the given XML node
      */
-    private static StringBuilder convertXmlChildNodesToLua(final NodeList nodes, String space) {
+    private static StringBuilder convertXmlChildNodesToLua(final NodeList nodes, final String space) {
         final StringBuilder sb = new StringBuilder();
-        space += " ";
         for (int i = 0; i < nodes.getLength(); i++) {
-            final Node node = nodes.item(i);
-            sb.append(convertXmlNodeToLua(space, node));
+            sb.append(convertXmlNodeToLua(space + " ", nodes.item(i)));
         }
 
         return sb;
@@ -124,7 +112,7 @@ public class Xml2Lua {
     /**
      * Converts a XML node to the corresponding Lua code.
      *
-     * @param node the XML node to convert to Lua code
+     * @param node  the XML node to convert to Lua code
      * @param space a string containing the amount of spaces to be used to indent the generated Lua code
      * @return a StringBuilder containing the Lua code generated for the given XML node
      */
@@ -143,7 +131,7 @@ public class Xml2Lua {
     /**
      * Converts a XML node with doesn't have any child element to the corresponding Lua code.
      *
-     * @param node the XML node to convert to Lua code
+     * @param node  the XML node to convert to Lua code
      * @param space a string containing the amount of spaces to be used to indent the generated Lua code
      * @return a StringBuilder containing the Lua code generated for the given XML node
      */
@@ -155,7 +143,7 @@ public class Xml2Lua {
         final NamedNodeMap attrs = node.getAttributes();
         if (attrs.getLength() == 0) {
             sb.append(node.getNodeName())
-              .append(" = \"").append(value).append("\", ");
+                    .append(" = \"").append(value).append("\", ");
             return sb;
         }
 
@@ -186,7 +174,7 @@ public class Xml2Lua {
     /**
      * Converts a XML node with has children elements to the corresponding Lua code.
      *
-     * @param node the XML node to convert to Lua code
+     * @param node  the XML node to convert to Lua code
      * @param space a string containing the amount of spaces to be used to indent the generated Lua code
      * @return a StringBuilder containing the Lua code generated for the given XML node
      */
@@ -210,13 +198,13 @@ public class Xml2Lua {
      * Generates the Lua code to start a Lua sub-table (a tabela which belongs to another table),
      * from a given XML node.
      *
-     * @param node the XML node to generate the code to start a Lua sub-table
+     * @param node                         the XML node to generate the code to start a Lua sub-table
      * @param xmlNodeIdAttrAsLuaTableIndex if true and the XML node has an attribute
-     *                                    named "id", such an attribute is used as the indexes
-     *                                    of the elements of the Lua sub-table to generate.
-     *                                    If it's false and there is an attribute named "id",
-     *                                    it will be included as an attribute inside the Lua sub-table.
-     * @param space a string containing the amount of spaces to be used to indent the generated Lua code
+     *                                     named "id", such an attribute is used as the indexes
+     *                                     of the elements of the Lua sub-table to generate.
+     *                                     If it's false and there is an attribute named "id",
+     *                                     it will be included as an attribute inside the Lua sub-table.
+     * @param space                        a string containing the amount of spaces to be used to indent the generated Lua code
      * @return a String containing the Lua code for the beginning of a lua sub-table generated from the XML node
      */
     private static String generateLuaSubTableFromXmlNode(final Element node, final boolean xmlNodeIdAttrAsLuaTableIndex, final String space) {
@@ -228,7 +216,7 @@ public class Xml2Lua {
             }
 
             return space + "{\n" + space + space +
-                   firstAttr.getNodeName() + "=" + firstAttr.getNodeValue();
+                    firstAttr.getNodeName() + "=" + firstAttr.getNodeValue();
         }
 
         return space + " {\n" + space;
@@ -256,7 +244,78 @@ public class Xml2Lua {
                         .append(attrs.item(i).getNodeValue()).append("', ");
             }
         }
-        
+
         return sb.toString();
+    }
+
+    /**
+     * Gets the name of the Lua file to generate, based on the XML file name.
+     *
+     * @return the name of Lua file to generate
+     */
+    public String getLuaFileName() {
+        return xmlFilePath.replaceFirst("\\.xml", ".lua");
+    }
+
+    /**
+     * Gets the name to assign for the Lua table to be generated from the XML file.
+     * @param doc the loaded XML document
+     * @return
+     */
+    private String getLuaTableName(final Document doc) {
+        if (useFirstXmlTagAsLuaTableName) {
+            return doc.getDocumentElement().getNodeName() + " = ";
+        }
+
+        return "return ";
+    }
+
+    /**
+     * Checks if the generated Lua code must be printed or not.
+     */
+    public boolean isPrintLuaCode() {
+        return printLuaCode;
+    }
+
+    /**
+     * Defines if the generated Lua code must be printed or not.
+     */
+    public Xml2Lua setPrintLuaCode(final boolean enable) {
+        this.printLuaCode = enable;
+        return this;
+    }
+
+    /**
+     * Checks if the name of the first tag into the XML file will be used as the name of the
+     * Lua table to be generated.
+     * @return if it returns true, the name of the first tag into the XML file will be used as the name of the
+     * Lua table to be generated. If it returns false, the name of this first tag will be ignored
+     * and a lua "return" command will be used instead.
+     * This way, the Lua developer who will use the generated Lua file
+     * can define the name he/she wants to use for the generated Lua table.
+     */
+    public boolean isUseFirstXmlTagAsLuaTableName() {
+        return useFirstXmlTagAsLuaTableName;
+    }
+
+    /**
+     * Defines if the name of the first tag into the XML file will be used as the name of the
+     * Lua table to be generated.
+     * @param enable if true, the name of the first tag into the XML file will be used as the name of the
+     * Lua table to be generated. If false, the name of this first tag will be ignored
+     * and a lua "return" command will be used instead.
+     * This way, the Lua developer who will use the generated Lua file
+     * can define the name he/she wants to use for the generated Lua table.
+     */
+    public Xml2Lua setUseFirstXmlTagAsLuaTableName(final boolean enable) {
+        this.useFirstXmlTagAsLuaTableName = enable;
+        return this;
+    }
+
+    /**
+     * Gets the path to the XML file to be parsed.
+     */
+    public String getXmlFilePath() {
+        return xmlFilePath;
     }
 }
