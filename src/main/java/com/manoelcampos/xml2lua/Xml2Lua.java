@@ -1,3 +1,22 @@
+/*
+ * Xml2Lua: Converts XML files to Lua format.
+ *     Copyright (C) 2011-2016  Manoel Campos da Silva Filho (http://manoelcampos.com)
+ *
+ *     This file is part of Xml2Lua.
+ *
+ *     Xml2Lua is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Xml2Lua is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Xml2Lua. If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.manoelcampos.xml2lua;
 
 import java.io.BufferedWriter;
@@ -18,59 +37,55 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
- * Converte um arquivo XML para um arquivo Lua contendo uma tabela representando
- * os dados do XML.
+ * Converts XML files to <a href="http://lua.org">Lua</a> files.
  *
- * @author Manoel Campos da Silva Filho - http://manoelcampos.com
+ * @author Manoel Campos da Silva Filho
  */
 public class Xml2Lua {
 
     /**
-     * Faz o parse de um arquivo XML e gera um arquivo lua com o mesmo nome.
+     * Instantiates the class to parse an XML file, generating a Lua file
+     * with the same name.
      *
-     * @param xmlFileName Nome do arquivo XML é ser processado.
-     * @param printLuaCode Se true, imprime no terminal o código Lua gerado
-     * @param useFirstXmlNodeAsLuaTableName Se true, o nome do primeiro nó no
-     * arquivo XML será usado como o nome da tabela lua gerada. Se for false, o
-     * nome deste 1o nó será ignorado e será usado um comando return de Lua para
-     * retornar a tabela gerada, permitindo que o desenvolvedor Lua que for usar
-     * tal arquivo Lua gerado, possa definir o nome que desejar para a tabela
-     * Lua.
+     * @param xmlFilePath Path to the XML file to be parsed
+     * @param printLuaCode if the generated Lua code must be printed or not
+     * @param useFirstXmlTagAsLuaTableName if true, indicates the name of the first
+     *                                     tag into the XML file will be used as the name of the
+     *                                     Lua table to be generated.
+     *                                     If false, the name of this first tag will be ignored
+     *                                     and a lua "return" command will be used instead.
+     *                                     This way, the Lua developer who will use the generated Lua file
+     *                                     can define the name he/she wants to use for the generated Lua table.
      */
-    public Xml2Lua(String xmlFileName, boolean printLuaCode, boolean useFirstXmlNodeAsLuaTableName) {
+    public Xml2Lua(final String xmlFilePath, final boolean printLuaCode, final boolean useFirstXmlTagAsLuaTableName) {
         try {
-            DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-            Document doc = docBuilder.parse(new File(xmlFileName));
+            final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+            final DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+            final Document doc = docBuilder.parse(new File(xmlFilePath));
 
-            //Normalize text representation
+            //Normalizes text representation
             doc.getDocumentElement().normalize();
-            String luaTableName;
-            if (useFirstXmlNodeAsLuaTableName) {
-                luaTableName = doc.getDocumentElement().getNodeName() + " = ";
-            } else {
-                luaTableName = "return ";
-            }
-            StringBuilder luacode = new StringBuilder(luaTableName + " {\n");
+            final String luaTableName = getLuaTableName(useFirstXmlTagAsLuaTableName, doc);
+            final StringBuilder luaCode = new StringBuilder(luaTableName + " {\n");
 
-            //Obtém os atributos do nó raiz do XML
-            Element child = (Element) doc.getDocumentElement();
-            luacode.append(getAttributes(child.getAttributes()));
+            //Gets the attributes of the XML root node.
+            final Element child = (Element) doc.getDocumentElement();
+            luaCode.append(convertXmlNodeAttributesToLua(child));
 
-            NodeList nodes = doc.getDocumentElement().getChildNodes();
-            luacode.append(getChildNodes(nodes, ""));
-            luacode.append("}");
+            final NodeList nodes = doc.getDocumentElement().getChildNodes();
+            luaCode.append(convertXmlChildNodesToLua(nodes, ""));
+            luaCode.append("}");
 
-            String luaFileName = xmlFileName.replaceFirst("\\.xml", ".lua");
-            FileWriter file = new FileWriter(luaFileName);
+            final String luaFileName = xmlFilePath.replaceFirst("\\.xml", ".lua");
+            final FileWriter file = new FileWriter(luaFileName);
             try (BufferedWriter out = new BufferedWriter(file)) {
-                out.write(luacode.toString());
+                out.write(luaCode.toString());
             }
 
             if (printLuaCode) {
-                System.out.println(luacode.toString());
+                System.out.println(luaCode.toString());
             }
-            System.out.println("Arquivo lua gerado com sucesso: " + luaFileName);
+            System.out.printf("\nLua file %s generated successfully from the %s.\n\n", luaFileName, xmlFilePath);
         } catch (SAXParseException err) {
             System.out.println("** Parsing error" + ", line "
                     + err.getLineNumber() + ", uri " + err.getSystemId());
@@ -80,115 +95,168 @@ public class Xml2Lua {
         }
     }
 
+    private String getLuaTableName(boolean useFirstXmlNodeAsLuaTableName, Document doc) {
+        if (useFirstXmlNodeAsLuaTableName) {
+            return doc.getDocumentElement().getNodeName() + " = ";
+        }
+
+        return "return ";
+    }
+
     /**
-     * Gera um StringBuilder contendo um trecho de código Lua para os elementos
-     * filhos de um determinado nó XML.
+     * Converts the child elements from a given XML node to the corresponding Lua code.
      *
-     * @param NodeList nodes Nós filhos de um determinado nó XML
-     * @param String space String contendo os espaços a serem utilizados para
-     * identar o trecho de código Lua gerado.
-     * @return  Retorna um StringBuilder contendo a string com o
-     * código lua gerado.
+     * @param nodes nodes child nodes from a given XML node
+     * @param space a string containing the amount of spaces to be used to indent the generated Lua code
+     * @return a StringBuilder containing the Lua code generated for the child elements of the given XML node
      */
-    private static StringBuilder getChildNodes(NodeList nodes, String space) {
-        StringBuilder sb = new StringBuilder();
+    private static StringBuilder convertXmlChildNodesToLua(final NodeList nodes, String space) {
+        final StringBuilder sb = new StringBuilder();
         space += " ";
         for (int i = 0; i < nodes.getLength(); i++) {
-            Node node = nodes.item(i);
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-                Element child = (Element) node;
-
-                NodeList childNodes = child.getChildNodes();
-                NamedNodeMap attrs = child.getAttributes();
-
-                Node firstAttr = null;
-                if (attrs.getLength() > 0) {
-                    firstAttr = attrs.item(0);
-                }
-
-                if (childNodes.getLength() > 1) {
-                    //sb.append(space+child.getNodeName() + " = {\n    ");
-                    sb.append(startSubTable(space, firstAttr, true));
-                    sb.append(getAttributes(attrs));
-                    sb.append(getChildNodes(childNodes, space + " "));
-                    sb.append("\n  },\n");
-                } //se o nó XML não tem nós filhos
-                else {
-                    childNodes = child.getChildNodes();
-                    Node childValue = (Node) childNodes.item(0);
-                    String value = "";
-                    if (childValue != null) {
-                        value = childValue.getNodeValue();
-                        if (value != null) {
-                            value = value.trim();
-                        } else {
-                            value = "";
-                        }
-                    }
-                    if (attrs.getLength() == 0) {
-                        sb.append(child.getNodeName())
-                          .append(" = \"").append(value).append("\", ");
-                    } else {
-                        sb.append(startSubTable(space, firstAttr, false));
-                        sb.append(getAttributes(attrs));
-                        sb.append("\n },\n");
-                    }
-                }
-            }
+            final Node node = nodes.item(i);
+            sb.append(convertXmlNodeToLua(space, node));
         }
+
         return sb;
     }
 
     /**
-     * Gera o código utilizado para abrir uma sub tabela dentro de uma tabela
-     * lua (a partir de um nó XML)
+     * Converts a XML node to the corresponding Lua code.
      *
-     * @param space String contendo espaços usados para identar o código gerado
-     * para a tabela lua
-     * @param firstAttr Primeiro atributo do nó XML (caso exista).
-     * @param xmlNodeIdAttrAsLuaTableIndex Com o valor true, se o nó XML possui
-     * um atributo id, tal atributo será usado como índice da sub-tabela lua. Se
-     * o valor for false, o atributo id (caso exista) será incluído como um
-     * atributo da sub-tabela lua.
-     * @return Retorna uma string contendo o trecho de código lua gerado 
+     * @param node the XML node to convert to Lua code
+     * @param space a string containing the amount of spaces to be used to indent the generated Lua code
+     * @return a StringBuilder containing the Lua code generated for the given XML node
      */
-    private static String startSubTable(String space, Node firstAttr, boolean xmlNodeIdAttrAsLuaTableIndex) {
-        String strStartSubTable;
-        //Se existe um atributo id, usa o mesmo como índice do nó XML na tabela Lua
-        if (firstAttr != null && firstAttr.getNodeName().toLowerCase().equals("id")) {
-            if (xmlNodeIdAttrAsLuaTableIndex) {
-                strStartSubTable = space + " [" + firstAttr.getNodeValue() + "]={\n    ";
-            } else {
-                strStartSubTable = 
-                        space + "{\n" + space + space + 
-                        firstAttr.getNodeName() + "=" + firstAttr.getNodeValue();
-            }
-        } else {
-            strStartSubTable = space + " {\n" + space;
+    private static StringBuilder convertXmlNodeToLua(final String space, final Node node) {
+        if (node.getNodeType() != Node.ELEMENT_NODE) {
+            return new StringBuilder();
         }
-        return strStartSubTable;
+
+        if (node.getChildNodes().getLength() > 1) {
+            return convertXmlNodeWithChildrenToLua((Element) node, space);
+        }
+
+        return convertXmlNodeWithNoChildToLua((Element) node, space);
     }
 
     /**
-     * Faz o parse da lista de atributos de um Node XML.
+     * Converts a XML node with doesn't have any child element to the corresponding Lua code.
      *
-     * @param attrs Lista de atributso de um Node/Element XML.
-     * @return StringBuffer Retorna um StringBuffer contendo os atributos no
-     * formato "nome1 = valor1, nome2 = valor2, nomeN = valorN, "
+     * @param node the XML node to convert to Lua code
+     * @param space a string containing the amount of spaces to be used to indent the generated Lua code
+     * @return a StringBuilder containing the Lua code generated for the given XML node
      */
-    private static StringBuffer getAttributes(NamedNodeMap attrs) {
-        StringBuffer sbAttrs = new StringBuffer();
-        for (int j = 0; j < attrs.getLength(); j++) {
-            /*Se o atributo não tiver o nome de "id", então adiciona o mesmo 
-            como um campo na (sub)tabela Lua sendo gerada, pois caso ela tenha 
-            o nome de "id", o mesmo é usado como índice do elemento da 
-            (sub) tabela Lua.*/
-            if (!attrs.item(j).getNodeName().toLowerCase().equals("id")) {
-                sbAttrs.append(attrs.item(j).getNodeName()).append(" = '")
-                        .append(attrs.item(j).getNodeValue()).append("', ");
-            }
+    private static StringBuilder convertXmlNodeWithNoChildToLua(final Element node, final String space) {
+        final StringBuilder sb = new StringBuilder();
+
+        final String value = getValueOfFirstXmlChildNode(node);
+
+        final NamedNodeMap attrs = node.getAttributes();
+        if (attrs.getLength() == 0) {
+            sb.append(node.getNodeName())
+              .append(" = \"").append(value).append("\", ");
+            return sb;
         }
-        return sbAttrs;
+
+        sb.append(generateLuaSubTableFromXmlNode(node, false, space));
+        sb.append(convertXmlNodeAttributesToLua(node));
+        sb.append("\n },\n");
+
+        return sb;
     }
 
+    /**
+     * Gets the value of the first child element of a given XML node.
+     *
+     * @param node the node the get the value of its first child node
+     * @return the value of the first child of the given node, or an empty string if the node
+     * doesn't have any children or the first child doesn't have a value.
+     */
+    private static String getValueOfFirstXmlChildNode(final Element node) {
+        final Node childValue = (Node) node.getChildNodes().item(0);
+        if (childValue != null) {
+            final String value = childValue.getNodeValue();
+            return value == null ? "" : value.trim();
+        }
+
+        return "";
+    }
+
+    /**
+     * Converts a XML node with has children elements to the corresponding Lua code.
+     *
+     * @param node the XML node to convert to Lua code
+     * @param space a string containing the amount of spaces to be used to indent the generated Lua code
+     * @return a StringBuilder containing the Lua code generated for the given XML node
+     */
+    private static StringBuilder convertXmlNodeWithChildrenToLua(final Element node, final String space) {
+        final StringBuilder sb = new StringBuilder();
+
+        NodeList childNodes = node.getChildNodes();
+        sb.append(generateLuaSubTableFromXmlNode(node, true, space));
+        sb.append(convertXmlNodeAttributesToLua(node));
+        sb.append(convertXmlChildNodesToLua(childNodes, space + " "));
+        sb.append("\n  },\n");
+
+        return sb;
+    }
+
+    private static Node getFirstAttributeFromXmlNode(final Element node) {
+        return node.getAttributes().getLength() > 0 ? node.getAttributes().item(0) : null;
+    }
+
+    /**
+     * Generates the Lua code to start a Lua sub-table (a tabela which belongs to another table),
+     * from a given XML node.
+     *
+     * @param node the XML node to generate the code to start a Lua sub-table
+     * @param xmlNodeIdAttrAsLuaTableIndex if true and the XML node has an attribute
+     *                                    named "id", such an attribute is used as the indexes
+     *                                    of the elements of the Lua sub-table to generate.
+     *                                    If it's false and there is an attribute named "id",
+     *                                    it will be included as an attribute inside the Lua sub-table.
+     * @param space a string containing the amount of spaces to be used to indent the generated Lua code
+     * @return a String containing the Lua code for the beginning of a lua sub-table generated from the XML node
+     */
+    private static String generateLuaSubTableFromXmlNode(final Element node, final boolean xmlNodeIdAttrAsLuaTableIndex, final String space) {
+        final Node firstAttr = getFirstAttributeFromXmlNode(node);
+
+        if (firstAttr != null && firstAttr.getNodeName().toLowerCase().equals("id")) {
+            if (xmlNodeIdAttrAsLuaTableIndex) {
+                return space + " [" + firstAttr.getNodeValue() + "]={\n    ";
+            }
+
+            return space + "{\n" + space + space +
+                   firstAttr.getNodeName() + "=" + firstAttr.getNodeValue();
+        }
+
+        return space + " {\n" + space;
+    }
+
+    /**
+     * Converts the attributes of a XML node to the corresponding Lua code.
+     *
+     * @param node the XML node to generate its attributes to Lua code
+     * @return a String containing the XML node attributes converted to Lua code, in the following format:
+     * nome1 = valor1, nome2 = valor2, nomeN = valorN,
+     */
+    private static String convertXmlNodeAttributesToLua(final Element node) {
+        final StringBuilder sb = new StringBuilder();
+        final NamedNodeMap attrs = node.getAttributes();
+
+        for (int i = 0; i < attrs.getLength(); i++) {
+            /*
+            If the attribute is not named "id", adds it as a field into the
+            Lua (sub)table being generated. If it is named "id", it's used
+            as the index of the Lua (sub)table.
+            */
+            if (!attrs.item(i).getNodeName().toLowerCase().equals("id")) {
+                sb.append(attrs.item(i).getNodeName()).append(" = '")
+                        .append(attrs.item(i).getNodeValue()).append("', ");
+            }
+        }
+        
+        return sb.toString();
+    }
 }

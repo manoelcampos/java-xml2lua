@@ -1,6 +1,11 @@
+*.iml
+*.ipr
+*.iws
 *.jar
 *.class
 .classpath
 .settings/
 /bin/
 /target/
+lua-sample-app/highlights.lua
+lua-sample-app/products.lua

@@ -1,0 +1,17 @@
+<products>
+	<product id="12">
+	  <description>TV 32''</description>
+	  <brand>Samsung</brand>
+	  <price>1200</price>
+	</product>
+	<product id="150">
+	  <description>Netbook</description>
+	  <brand>Asus</brand>
+	  <price>900</price>
+	</product>
+	<product id="198">
+	  <description>Laser Printer</description>
+	  <brand>Samsung</brand>
+	  <price>399</price>
+	</product>	
+</products>

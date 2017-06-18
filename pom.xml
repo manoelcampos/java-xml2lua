@@ -1,31 +1,224 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.manoelcampos</groupId>
     <artifactId>xml2lua</artifactId>
+    <name>Xml2Lua</name>
+    <description>Converts XML files to Lua format.</description>
     <version>1.0</version>
     <packaging>jar</packaging>
+
+    <organization>
+        <name>Manoel Campos da Silva Filho</name>
+        <url>http://manoelcampos.com</url>
+    </organization>
+
+    <inceptionYear>2011</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>GPLv3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Manoel Campos da Silva Filho</name>
+            <email>manoelcampos@gmail.com</email>
+            <organization>Instituto Federal de Educação Ciência e Tecnologia do Tocantins (IFTO)</organization>
+            <organizationUrl>http://www.ifto.edu.br</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:manoelcampos/JavaXml2Lua.git</connection>
+        <developerConnection>scm:git:git@github.com:manoelcampos/JavaXml2Lua.git</developerConnection>
+        <url>git@github.com:manoelcampos/JavaXml2Lua.git</url>
+    </scm>
+
+    <issueManagement>
+        <url>http://github.com/manoelcampos/JavaXml2Lua/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
+
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
     </properties>
-    
-  <build>
-    <plugins>
-      <plugin>
-        <version>2.6</version>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <mainClass>com.manoelcampos.xml2lua.Xml2LuaApp</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>    
+
+    <profiles>
+        <profile>
+            <!--
+             A profile used to execute all goals required to deploy
+             the project to the Maven Central.
+             To execute use: mvn clean deploy -P all
+
+             To check the deployed artifact and probably release it to maven central
+             you should visit https://oss.sonatype.org.
+             MAKE SURE YOU ARE LOGGED IN TO SEE YOUR DEPLOYMENTS.
+             -->
+            <id>all</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.0.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+
+                        <configuration>
+                            <!-- <failOnError>false</failOnError> -->
+                            <tags>
+                                <direction>
+                                    <name>pre</name>
+                                    <placement>a</placement>
+                                    <head>Precondition:</head>
+                                </direction>
+                                <direction>
+                                    <name>post</name>
+                                    <placement>a</placement>
+                                    <head>Postcondition:</head>
+                                </direction>
+                            </tags>
+                        </configuration>
+                    </plugin>
+
+                    <!--
+                     Signs the generated jar using GPG, as required for deploying at the Maven Central.
+                     Configurations are defined into the local repo settings.xml
+                    -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!--
+                    Plugin to deploy to the maven central using a Sonatype account.
+                    Credentials are defined into the local repo settings.xml
+                    -->
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <!--If the artifact will be automatically released to maven central
+                            after the upload to sonatype.-->
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <version>3.0.2</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.manoelcampos.xml2lua.Xml2LuaApp</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!--
+            Adds License Information to project source and binaries using com.mycila.maven-license-plugin.
+            https://dzone.com/articles/adding-license-information.
+
+            To add missing license information for source files run:
+            mvn license:format
+            -->
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.10.b1</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <header>COPYRIGHT</header>
+                    <aggregate>true</aggregate>
+                    <properties>
+                        <project>${project.name}</project>
+                        <founder>${project.organization.name}</founder>
+                        <year>${project.inceptionYear}</year>
+                        <website>${project.url}</website>
+                    </properties>
+
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+
+                    <strictCheck>true</strictCheck>
+                    <failIfMissing>false</failIfMissing>
+
+                    <includes>
+                        <include>**/src/main/java/**/*.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <!--
+                            Checks for missing license header in source files.
+                            You can use "format" to add missing headers or
+                            call manually using: mvn license:format
+                            -->
+                            <goal>check</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>licenses</artifactId>
+                        <version>1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
 </project>
