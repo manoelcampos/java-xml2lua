@@ -6,6 +6,7 @@
     <artifactId>xml2lua</artifactId>
     <name>Xml2Lua</name>
     <description>Converts XML files to Lua format.</description>
+    <url>http://manoelcampos.github.io/JavaXml2Lua</url>
     <version>1.0</version>
     <packaging>jar</packaging>
 

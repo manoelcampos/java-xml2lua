@@ -10,7 +10,7 @@ Por demandar uma capacidade mínima de processamento, o uso de arquivos de dados
 
 # O problema
 
-O uso de arquivos XML em aplicações NCL/Lua para a TVD (enviadas via broadcast) é perfeitamente possível desde que tenha-se um parser escrito inteiramente em Lua, como o [LuaXML](https://github.com/manoelcampos/LuaXML) (veja o [Leitor de RSS em NCLua](https://github.com/manoelcampos/NCLuaRSS-Reader)). Tal parser converte um arquivo XML para uma tabela Lua, armazenando a mesma em RAM. Desta forma, a manipulação dos dados fica mais fácil. No link anterior existe uma versão do parser, adaptada por mim, que funciona com Lua 5 (a versão utilizada no subsistema Ginga-NCL do middleware Ginga).
+O uso de arquivos XML em aplicações NCL/Lua para a TVD (enviadas via broadcast) é perfeitamente possível desde que tenha-se um parser escrito inteiramente em Lua, como o módulo homônimo [xml2lua](https://github.com/manoelcampos/xml2lua), escrito inteiramente em Lua. Tal parser converte um arquivo XML para uma tabela Lua, armazenando a mesma em RAM. Desta forma, a manipulação dos dados fica mais fácil. No link anterior existe uma versão do parser, adaptada por mim, que funciona com Lua 5 (a versão utilizada no subsistema Ginga-NCL do middleware Ginga).
 
 No entanto, tal abordagem pode ser problemática quando se precisa carregar tal arquivo XML do disco, usando Lua. A norma ABNT NBR 15606-2 versão 3 (atualizada em 2009) na seção "10.1 Linguagem Lua - Funções removidas da biblioteca de Lua" mostra que nenhuma função do módulo IO de Lua (que permite a manipulação de arquivos em disco) deve estar disponível para aplicações de TVD. Uma atualização de 2011 da norma (ABNT NBR 15606-2 2011 Ed2) passou a incluir o módulo IO, no entanto, muitas das implementações de Ginga existentes no mercado são anteriores a esta revisão da norma. Assim, se os fabricantes seguiram a norma vigente na época, o módulo IO não deve estar disponível.
 
@@ -19,11 +19,11 @@ Apesar de ser possível a atualização do middleware, sabemos que nem todos os 
 Desta forma, usar arquivos XML localmente não garante que a aplicação executará em qualquer implementação de Ginga.
 
 
-# A solução: Xml2Lua
+# A solução: Java Xml2Lua
 
 Para resolver tal problema, estou disponibilizando uma aplicação console em Java para converter um arquivo XML para o formato Lua. A aplicação utiliza o parser DOM (que se não estou errado é padrão no JDK e JRE) para percorrer os elementos do arquivo XML e assim poder gerar um arquivo Lua com os dados contidos no primeiro.
 
-Para tal conversão, poderia ser utilizada qualquer linguagem de programação, até mesmo Lua, com uso do [LuaXML](https://github.com/manoelcampos/LuaXML) (para fazer o parse do XML) e o [table.save](http://lua-users.org/wiki/SaveTableToFile) (para salvar a tabela Lua, gerada a partir do XML, em disco). No entanto, o arquivo lua gerado com o table.save não ficou muito organizado e incluiu muito lixo, dificultando a manipulação dos dados. Por este motivo, resolvi implementar a ferramenta em Java.
+Para tal conversão, poderia ser utilizada qualquer linguagem de programação, até mesmo Lua, com uso do módulo homônimo [xml2lua](https://github.com/manoelcampos/xml2lua) (para fazer o parse do XML) e o [table.save](http://lua-users.org/wiki/SaveTableToFile) (para salvar a tabela Lua, gerada a partir do XML, em disco). No entanto, o arquivo lua gerado com o table.save não ficou muito organizado e incluiu muito lixo, dificultando a manipulação dos dados. Por este motivo, resolvi implementar a ferramenta em Java.
 
 A implementação realizada está disponível no final do artigo, juntamente com toda a documentação e código fonte.  Ela possui uma ferramenta de linha de comando (para ser usada antes de enviar a aplicação NCL/Lua via broadcast) para fazer a conversão do XML para Lua. Além disto, existe também uma classe Java que pode ser usada em qualquer outra aplicação (Desktop ou Web), permitindo a integração de tal implementação em sistemas já existentes, para, por exemplo, automatizar a conversão dos arquivos XML para Lua, para assim poderem ser enviados pelo carrossel para transmissão em broadcast.
 
@@ -175,4 +175,4 @@ Como as aplicações de TVD (por exemplo, as de comércio eletrônico) podem ser
 
 Assim, com a implementação apresentada, pode-se utilizar os arquivos XML que por ventura já sejam gerados por sistemas existentes, e convertê-los para arquivos Lua para uso em uma aplicação para a TV Digital, sem precisar necessariamente alterar os sistemas existentes.
 
-Com isto, o equipamento de TVD fica livre do overhead do parse do arquivo XML, por menor que este seja com o uso do [LuaXML](https://github.com/manoelcampos/LuaXML).
+Com isto, o equipamento de TVD fica livre do overhead do parse do arquivo XML, por menor que este seja com o uso do módulo homônimo [xml2lua](https://github.com/manoelcampos/xml2lua).
