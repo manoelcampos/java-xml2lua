@@ -52,7 +52,7 @@ Using the `Xml2Lua` class to convert a XML to a Lua file requires just few lines
 ```java
 Xml2Lua parser = new Xml2Lua(xmlFilePath);
 parser.convert();
-System.out.printf("Lua file %s generated successfully from the %s.\n", parser.getLuaFileName(), parser.getXmlFilePath());
+System.out.printf("Lua file generated at %s.\n", parser.getLuaFileName());
 ```
 
 # Using it as a command line tool
