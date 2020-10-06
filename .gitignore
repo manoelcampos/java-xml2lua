@@ -9,3 +9,5 @@
 /target/
 lua-sample-app/highlights.lua
 lua-sample-app/products.lua
+
+.DS_Store
